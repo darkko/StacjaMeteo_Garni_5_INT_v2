@@ -201,7 +201,7 @@
 #include <PubSubClient.h>
 
 // LCD
-#if defined(HARDWARE_HELTEC_V2) || defined(ARDUINO_LILYGO_T3S3_SX1262) || defined(ARDUINO_LILYGO_T3S3_SX1276) || defined(ARDUINO_LILYGO_T3S3_LR1121)
+#if defined(HARDWARE_HELTEC_V2) || defined(HARDWARE_HELTEC_V3) || defined(ARDUINO_LILYGO_T3S3_SX1262) || defined(ARDUINO_LILYGO_T3S3_SX1276) || defined(ARDUINO_LILYGO_T3S3_LR1121)
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -248,7 +248,11 @@
 #define SCREEN_HEIGHT 64    // Wysokość wyświetlacza w pikselach
 #define OLED_RESET 16       // Pin resetowania wyświetlacza (bardzo ważny w V2!)
 #define SCREEN_ADDRESS 0x3C // Standardowy adres I2C dla tego ekranu
-
+#elif defined(HARDWARE_HELTEC_V3)
+#define SCREEN_WIDTH 128    // Szerokość wyświetlacza w pikselach
+#define SCREEN_HEIGHT 64    // Wysokość wyświetlacza w pikselach
+#define OLED_RESET 21       // Pin resetowania wyświetlacza (bardzo ważny w V2!)
+#define SCREEN_ADDRESS 0x3C // Standardowy adres I2C dla tego ekranu
 #elif defined(HARDWARE_CYD)
 // --- Paleta kolorów (Nowoczesny Dark Mode) ---
 #define BG_COLOR       0x0841  // Bardzo ciemny szary/granatowy
@@ -303,9 +307,12 @@
 //#define BME_CS 13
 #define I2C_SDA 17
 #define I2C_SCL 4
-#elif defined(HARDWARE_HELTEC_V2) || defined(HARDWARE_HELTEC_V3)
+#elif defined(HARDWARE_HELTEC_V2)
 #define I2C_SDA 17
 #define I2C_SCL 4
+#elif defined(HARDWARE_HELTEC_V3)
+#define I2C_SDA 38
+#define I2C_SCL 39
 #else
 #define BME_SCK 1
 #define BME_MISO 3
@@ -348,7 +355,7 @@ WiFiClient       espClient;
 PubSubClient     mqttClient(espClient);
 
 // Heltec LCD / LILYGO LCD
-#if defined(HARDWARE_HELTEC_V2) || defined(ARDUINO_LILYGO_T3S3_SX1262) || defined(ARDUINO_LILYGO_T3S3_SX1276) || defined(ARDUINO_LILYGO_T3S3_LR1121)
+#if defined(HARDWARE_HELTEC_V2) || defined(HARDWARE_HELTEC_V3) || defined(ARDUINO_LILYGO_T3S3_SX1262) || defined(ARDUINO_LILYGO_T3S3_SX1276) || defined(ARDUINO_LILYGO_T3S3_LR1121)
 TwoWire twi = TwoWire(1);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &twi, OLED_RESET);
 #elif defined(HARDWARE_CYD)
@@ -1584,11 +1591,14 @@ void setup() {
     // I2C pin configuration
     twi.begin(4, 15);
     //Wire.begin(SDA, SCL);
+#elif defined(HARDWARE_HELTEC_V3)
+    // I2C pin configuration
+    twi.begin(17, 18);
 #endif
 
 
 
-#if defined(HARDWARE_HELTEC_V2) || defined(ARDUINO_LILYGO_T3S3_SX1262) || defined(ARDUINO_LILYGO_T3S3_SX1276) || defined(ARDUINO_LILYGO_T3S3_LR1121)
+#if defined(HARDWARE_HELTEC_V2) || defined(HARDWARE_HELTEC_V3) || defined(ARDUINO_LILYGO_T3S3_SX1262) || defined(ARDUINO_LILYGO_T3S3_SX1276) || defined(ARDUINO_LILYGO_T3S3_LR1121)
     // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
     if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
     {
@@ -2091,7 +2101,7 @@ void loop()
   if (millis() - last_LCD_refresh >= LCD_INTERVAL_MS) {
   
     // funkcja wyświetlająca aktualne dane na wyświetlaczu
-#if defined(HARDWARE_HELTEC_V2) || defined(ARDUINO_LILYGO_T3S3_SX1262) || defined(ARDUINO_LILYGO_T3S3_SX1276) || defined(ARDUINO_LILYGO_T3S3_LR1121)
+#if defined(HARDWARE_HELTEC_V2) || defined(HARDWARE_HELTEC_V3) || defined(ARDUINO_LILYGO_T3S3_SX1262) || defined(ARDUINO_LILYGO_T3S3_SX1276) || defined(ARDUINO_LILYGO_T3S3_LR1121)
       LCDShow();
 #elif defined(HARDWARE_CYD)
       aktualizujDaneNaEkranie();
