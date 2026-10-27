@@ -303,6 +303,9 @@
 //#define BME_CS 13
 #define I2C_SDA 17
 #define I2C_SCL 4
+#elif defined(HARDWARE_HELTEC_V2) || defined(HARDWARE_HELTEC_V3)
+#define I2C_SDA 17
+#define I2C_SCL 4
 #else
 #define BME_SCK 1
 #define BME_MISO 3
@@ -696,7 +699,7 @@ void mqttReconnect() {
   if (mqttClient.connected()) return;
   Serial.print(F("[MQTT] Laczenie... "));
 
-#if defined(HARDWARE_HELTEC_V2) || defined(ARDUINO_LILYGO_T3S3_SX1262) || defined(ARDUINO_LILYGO_T3S3_SX1276) || defined(ARDUINO_LILYGO_T3S3_LR1121) || defined(HARDWARE_CYD)
+#if defined(HARDWARE_HELTEC_V2) || (HARDWARE_HELTEC_V3) || defined(ARDUINO_LILYGO_T3S3_SX1262) || defined(ARDUINO_LILYGO_T3S3_SX1276) || defined(ARDUINO_LILYGO_T3S3_LR1121) || defined(HARDWARE_CYD)
     String clientId = "WX-" + APRS_CALLSIGN + "-" + String(ESP.getEfuseMac(), HEX);
 #elif defined(ESP8266)
     String clientId = "WX-" + APRS_CALLSIGN + "-" + String(ESP.getChipId(), HEX);
@@ -1436,6 +1439,7 @@ void LCDShow_status_clear() {
 
 }
 
+#if defined(HARDWARE_CYD)
 
 // Pomocnicza funkcja do rysowania ramek sekcji (używa czcionki z pamięci Flash)
 void rysujBoks(int x, int y, int w, int h, String naglowek, uint16_t kolorRamki) {
@@ -1454,7 +1458,7 @@ void rysujBoks(int x, int y, int w, int h, String naglowek, uint16_t kolorRamki)
   tft.drawString(naglowek, x + (w / 2), y);
   //tft.unloadFont();
 }
-
+#endif
 
 //funkcje pomocnicze do rysowanie na ekranie graficznym 320x240 px
 #if defined(HARDWARE_CYD)
@@ -1989,6 +1993,7 @@ void loop()
             if (ws.sensor[i].w.uv_ok) {
                 Serial.printf("UVidx: [%2.1f] ",
                     ws.sensor[i].w.uv);
+                current_wx.uv_index = ws.sensor[0].w.uv;
             }
             else {
                 Serial.printf("UVidx: [--.-] ");
