@@ -229,6 +229,8 @@
 #define MAX_SENSORS 1
 #define RX_TIMEOUT 180000 // sensor receive timeout [ms]
 #define UPDATE_DELAY 30   // Delay between updates [s]
+
+//Definicja pinow OLED i BME280
 #if defined(ARDUINO_TTGO_LoRa32_V1) || \
     defined(ARDUINO_TTGO_LoRa32_V2) || \
     defined(ARDUINO_TTGO_LoRa32_v21new)
@@ -248,12 +250,29 @@
 #define SCREEN_HEIGHT 64    // Wysokość wyświetlacza w pikselach
 #define OLED_RESET 16       // Pin resetowania wyświetlacza (bardzo ważny w V2!)
 #define SCREEN_ADDRESS 0x3C // Standardowy adres I2C dla tego ekranu
+#define I2C_SDA 12
+#define I2C_SCL 13
+#define OLED_SDA        4
+#define OLED_SCL        15
 #elif defined(HARDWARE_HELTEC_V3)
 #define SCREEN_WIDTH 128    // Szerokość wyświetlacza w pikselach
 #define SCREEN_HEIGHT 64    // Wysokość wyświetlacza w pikselach
 #define OLED_RESET 21       // Pin resetowania wyświetlacza (bardzo ważny w V2!)
 #define SCREEN_ADDRESS 0x3C // Standardowy adres I2C dla tego ekranu
+#define I2C_SDA 38
+#define I2C_SCL 39
+#define VEXT_PIN        36
+#define OLED_RST_PIN    21
+#define OLED_SDA        17
+#define OLED_SCL        18
 #elif defined(HARDWARE_CYD)
+
+//#define BME_SCK 1
+//#define BME_MISO 3
+//#define BME_MOSI 17
+//#define BME_CS 13
+#define I2C_SDA 17
+#define I2C_SCL 4
 // --- Paleta kolorów (Nowoczesny Dark Mode) ---
 #define BG_COLOR       0x0841  // Bardzo ciemny szary/granatowy
 #define CARD_COLOR     0x18C3  // Jaśniejszy szary dla ramek/sekcji
@@ -297,35 +316,20 @@
 */
 #else
 #pragma message("Board not supported yet!")
-#endif
-
-//Definicja pinow BME280
-#if defined(HARDWARE_CYD)
-//#define BME_SCK 1
-//#define BME_MISO 3
-//#define BME_MOSI 17
-//#define BME_CS 13
-#define I2C_SDA 17
-#define I2C_SCL 4
-#elif defined(HARDWARE_HELTEC_V2)
-#define I2C_SDA 17
-#define I2C_SCL 4
-#elif defined(HARDWARE_HELTEC_V3)
-#define I2C_SDA 38
-#define I2C_SCL 39
-#else
 #define BME_SCK 1
 #define BME_MISO 3
 #define BME_MOSI 17
 #define BME_CS 13
 #endif
 
+//Definicja pinow BME280
+
 #define SEALEVELPRESSURE_HPA (1013.25)  //ciśnienie poziomu moża
 
 // ==== UWAGA - jak masz wiele nadajników to pamiętaj ustawić odpowiednie ID w pliku "src/WeatherSensorCfg.h" w polu:
 //   #define SENSOR_IDS_INC { 0xF805 }
 
-#if defined(HARDWARE_HELTEC_V2) || defined(ARDUINO_LILYGO_T3S3_SX1262) || defined(ARDUINO_LILYGO_T3S3_SX1276) || defined(ARDUINO_LILYGO_T3S3_LR1121)
+#if defined(HARDWARE_HELTEC_V2) || defined(HARDWARE_HELTEC_V3) || defined(ARDUINO_LILYGO_T3S3_SX1262) || defined(ARDUINO_LILYGO_T3S3_SX1276) || defined(ARDUINO_LILYGO_T3S3_LR1121)
 // 16x16 thermometer icon
 const unsigned char thermo_icon[] PROGMEM = {
   0x06,0x00, 0x09,0x00, 0x09,0x00, 0x09,0x00,
@@ -1188,7 +1192,7 @@ void handleReset() {
 void LCDShow() {
 
     //Wersja dla Heltec lub Lilygo
-#if defined(HARDWARE_HELTEC_V2) || defined(ARDUINO_LILYGO_T3S3_SX1262) || defined(ARDUINO_LILYGO_T3S3_SX1276) || defined(ARDUINO_LILYGO_T3S3_LR1121)
+#if defined(HARDWARE_HELTEC_V2) || defined(HARDWARE_HELTEC_V3) || defined(ARDUINO_LILYGO_T3S3_SX1262) || defined(ARDUINO_LILYGO_T3S3_SX1276) || defined(ARDUINO_LILYGO_T3S3_LR1121)
 
     display.clearDisplay();
     display.setCursor(0, 0);  //kursor do lini 1
@@ -1589,11 +1593,15 @@ void setup() {
     Wire.begin(SDA, SCL);
 #elif defined(HARDWARE_HELTEC_V2)
     // I2C pin configuration
-    twi.begin(4, 15);
+    twi.begin(OLED_SDA, OLED_SCL);
     //Wire.begin(SDA, SCL);
 #elif defined(HARDWARE_HELTEC_V3)
-    // I2C pin configuration
-    twi.begin(17, 18);
+    // WŁĄCZENIE ZASILANIA EKRANU (Kluczowy krok dla Heltec V3)
+    pinMode(VEXT_PIN, OUTPUT);
+    digitalWrite(VEXT_PIN, LOW); // Stan NISKI włącza zasilanie Vext 
+    delay(100); // Krótka przerwa, aby ekran się ustabilizował
+    // I2C Konfiguracja pinow
+    twi.begin(OLED_SDA, OLED_SCL);
 #endif
 
 
@@ -2055,7 +2063,7 @@ void loop()
 // =============================================!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 //   ustawic przypisanie do odpowiednich zmiennych
 //================================-------------------------------------------------------
-
+/*
     Serial.print("Temperature = ");
     Serial.print(bme.readTemperature());
     Serial.println(" °C");
@@ -2076,7 +2084,8 @@ void loop()
     current_wx.bme_humidity = bme.readHumidity();
 
     Serial.println();
-
+    Serial.println("Proba odczytu danych BME");
+*/
   }
 
   if (bme_available) {
